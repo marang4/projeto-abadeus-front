@@ -47,7 +47,7 @@ export function Header() {
           </Link>
 
           <Link
-            to="/perfil"
+            to="/login"
             className="text-white text-decoration-none"
             title="Meu Perfil"
           >
