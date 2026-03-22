@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-// Correção: o import correto costuma ser 'react-router-dom'
 import { Link, useNavigate } from "react-router-dom";
+import api from "../../services/api"; // <-- ATENÇÃO: Verifique se o caminho para o seu arquivo api.ts está correto!
 
 export default function Cadastro() {
   const navigate = useNavigate();
 
-  // Agrupando todos os campos em um único estado para facilitar o gerenciamento
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -17,7 +16,10 @@ export default function Cadastro() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
-  // Função genérica que atualiza qualquer campo que o usuário digitar
+  // Estados para exibir mensagens de erro ou sucesso
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setFormData((prevState) => ({ ...prevState, [name]: value }));
@@ -26,13 +28,34 @@ export default function Cadastro() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
 
-    // Simulação de tempo de requisição para a API
-    setTimeout(() => {
+    try {
+      // Faz o POST para a rota /usuarios no seu backend Java
+      await api.post("/usuarios", formData);
+
+      // Se o Java retornar 200 OK, exibe a mensagem de sucesso
+      setSuccessMessage("Conta criada com sucesso! Redirecionando...");
+
+      // Aguarda 2 segundinhos para o usuário ler a mensagem e vai pro login
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      // Captura o erro (ex: se o Java avisar que o email já existe)
+      if (error.response?.status === 404 || error.response?.status === 400) {
+        setErrorMessage("Erro ao criar conta. Verifique os dados informados.");
+      } else {
+        setErrorMessage(
+          "Erro de conexão com o servidor. Tente novamente mais tarde.",
+        );
+      }
+    } finally {
       setIsLoading(false);
-      // Após cadastrar, joga o usuário de volta para a tela de login
-      navigate("/login");
-    }, 1500);
+    }
   };
 
   return (
@@ -62,6 +85,24 @@ export default function Cadastro() {
         Crie sua conta
       </h2>
 
+      {/* ALERTAS DO BOOTSTRAP */}
+      {errorMessage && (
+        <div
+          className="alert alert-danger text-center p-2 mb-3"
+          style={{ fontSize: "0.85rem" }}
+        >
+          {errorMessage}
+        </div>
+      )}
+      {successMessage && (
+        <div
+          className="alert alert-success text-center p-2 mb-3"
+          style={{ fontSize: "0.85rem" }}
+        >
+          {successMessage}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
         {/* Campo Nome */}
         <div className="mb-3 text-start">
@@ -77,12 +118,12 @@ export default function Cadastro() {
             className="form-control rounded-1 py-2 shadow-none border-secondary"
             value={formData.nome}
             onChange={handleChange}
-            disabled={isLoading}
+            disabled={isLoading || successMessage !== ""}
             required
           />
         </div>
 
-        {/* Agrupando CPF e Telefone lado a lado em telas maiores */}
+        {/* Agrupando CPF e Telefone */}
         <div className="row mb-3">
           <div className="col-12 col-md-6 text-start mb-3 mb-md-0">
             <label
@@ -97,7 +138,7 @@ export default function Cadastro() {
               className="form-control rounded-1 py-2 shadow-none border-secondary"
               value={formData.cpf}
               onChange={handleChange}
-              disabled={isLoading}
+              disabled={isLoading || successMessage !== ""}
               required
             />
           </div>
@@ -114,7 +155,7 @@ export default function Cadastro() {
               className="form-control rounded-1 py-2 shadow-none border-secondary"
               value={formData.telefone}
               onChange={handleChange}
-              disabled={isLoading}
+              disabled={isLoading || successMessage !== ""}
               required
             />
           </div>
@@ -134,7 +175,7 @@ export default function Cadastro() {
             className="form-control rounded-1 py-2 shadow-none border-secondary"
             value={formData.email}
             onChange={handleChange}
-            disabled={isLoading}
+            disabled={isLoading || successMessage !== ""}
             required
           />
         </div>
@@ -154,7 +195,7 @@ export default function Cadastro() {
               className="form-control rounded-start-1 py-2 shadow-none border-secondary border-end-0"
               value={formData.senha}
               onChange={handleChange}
-              disabled={isLoading}
+              disabled={isLoading || successMessage !== ""}
               required
             />
             <span
@@ -175,7 +216,7 @@ export default function Cadastro() {
             type="submit"
             className="btn text-white py-2 rounded-1 border-0 w-100 d-flex align-items-center justify-content-center"
             style={{ backgroundColor: "#000134" }}
-            disabled={isLoading}
+            disabled={isLoading || successMessage !== ""}
           >
             {isLoading ? (
               <>

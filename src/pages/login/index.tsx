@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext"; // <-- ATENÇÃO: Verifique se este caminho aponta certo para o seu arquivo AuthContext.tsx
 
 interface LoginRequest {
   documento: string;
@@ -8,12 +9,13 @@ interface LoginRequest {
 
 export function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth(); // Puxa a função de login real
 
   const [formData, setFormData] = useState<LoginRequest>({
     documento: "",
     senha: "",
   });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -28,10 +30,22 @@ export function Login() {
     setErrorMessage("");
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // Chama a API do Java enviando os dados
+      await login({
+        email: formData.documento, // O back pede email, mas seu form envia documento
+        senha: formData.senha,
+      });
+
+      // Se deu certo, vai para a Home
       navigate("/");
-    }, 1500);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      // Se o Java retornar erro (ex: 401), exibe na tela
+      setErrorMessage("E-mail ou senha incorretos.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -57,14 +71,23 @@ export function Login() {
         </span>
       </Link>
 
-      {/* Título com fonte mais fina (fw-normal) para ficar elegante */}
       <h2 className="fs-5 mb-4 text-center text-dark fw-normal">
         Faça login na sua conta
         <br />
         para continuar
       </h2>
+
+      {/* Exibição do erro usando Bootstrap */}
+      {errorMessage && (
+        <div
+          className="alert alert-danger text-center p-2 mb-3"
+          style={{ fontSize: "0.85rem" }}
+        >
+          {errorMessage}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
-        {/* Campo Login */}
         <div className="mb-3 text-start">
           <label
             className="form-label text-dark mb-1"
@@ -83,7 +106,6 @@ export function Login() {
           />
         </div>
 
-        {/* Campo Senha */}
         <div className="mb-1 text-start">
           <label
             className="form-label text-dark mb-1"
@@ -113,7 +135,6 @@ export function Login() {
           </div>
         </div>
 
-        {/* Esqueci minha senha */}
         <div className="text-end mb-4">
           <Link
             to="/esqueci-senha"
@@ -124,7 +145,6 @@ export function Login() {
           </Link>
         </div>
 
-        {/* Botão Entrar mais largo (w-100) com um respiro lateral (px-4) */}
         <div className="d-flex justify-content-center mb-4 px-4">
           <button
             type="submit"
@@ -143,7 +163,6 @@ export function Login() {
           </button>
         </div>
 
-        {/* Criar Conta */}
         <div
           className="text-center text-dark mt-2"
           style={{ fontSize: "0.85rem" }}

@@ -1,8 +1,9 @@
 import { Route, Routes } from "react-router-dom";
+import { RotaPrivada } from "./assets/components/rotaPrivada"; // <-- ATENÇÃO: Ajuste o caminho se necessário
 
 import { Home } from "./pages/home";
 import { Login } from "./pages/login";
-import LayoutLogin from "./assets/components/layoutLogin"; // Verifique se o caminho da importação está correto
+import LayoutLogin from "./assets/components/layoutLogin";
 import LayoutAdmin from "./assets/components/layoutAdmin";
 import Cadastro from "./pages/cadastre-se";
 import EsqueciSenha from "./pages/esqueciSenha";
@@ -16,7 +17,14 @@ function AppRoutes() {
         <Route path="/esqueci-senha" element={<EsqueciSenha />} />
       </Route>
 
-      <Route element={<LayoutAdmin />}>
+      {/* Catraca fechada: Envolvemos o LayoutAdmin com a RotaPrivada */}
+      <Route
+        element={
+          <RotaPrivada>
+            <LayoutAdmin />
+          </RotaPrivada>
+        }
+      >
         <Route path="/" element={<Home />} />
       </Route>
     </Routes>
