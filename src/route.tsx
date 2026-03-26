@@ -7,6 +7,7 @@ import LayoutLogin from "./assets/components/layoutLogin";
 import LayoutAdmin from "./assets/components/layoutAdmin";
 import Cadastro from "./pages/cadastre-se";
 import EsqueciSenha from "./pages/esqueciSenha";
+import PerfilPage from "./assets/perfilPage";
 
 function AppRoutes() {
   return (
@@ -26,6 +27,7 @@ function AppRoutes() {
         }
       >
         <Route path="/" element={<Home />} />
+        <Route path="/perfil" element={<PerfilPage />} />
       </Route>
     </Routes>
   );
