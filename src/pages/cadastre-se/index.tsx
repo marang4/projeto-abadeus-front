@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../../services/api"; // <-- ATENÇÃO: Verifique se o caminho para o seu arquivo api.ts está correto!
+import api from "../../services/api";
 
 export default function Cadastro() {
   const navigate = useNavigate();
@@ -11,17 +11,41 @@ export default function Cadastro() {
     senha: "",
     cpf: "",
     telefone: "",
+    dataNascimento: "",
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
-  // Estados para exibir mensagens de erro ou sucesso
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
 
+  // --- FUNÇÕES DE MÁSCARA ---
+  const maskCPF = (value: string) => {
+    return value
+      .replace(/\D/g, "") // Tira tudo que não é número
+      .replace(/(\d{3})(\d)/, "$1.$2") // Coloca o primeiro ponto
+      .replace(/(\d{3})(\d)/, "$1.$2") // Coloca o segundo ponto
+      .replace(/(\d{3})(\d{1,2})/, "$1-$2") // Coloca o traço
+      .replace(/(-\d{2})\d+?$/, "$1"); // Impede de digitar mais que 11 números
+  };
+
+  const maskPhone = (value: string) => {
+    return value
+      .replace(/\D/g, "") // Tira tudo que não é número
+      .replace(/(\d{2})(\d)/, "($1) $2") // Coloca parênteses em volta do DDD
+      .replace(/(\d{5})(\d)/, "$1-$2") // Coloca o traço depois do 9
+      .replace(/(-\d{4})\d+?$/, "$1"); // Impede de digitar mais números que o permitido
+  };
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
+    const name = event.target.name; // Como o nome do campo não muda, usamos const
+    let value = event.target.value; // Como o valor vai receber a máscara, usamos let
+
+    // Se for CPF ou Telefone, aplica a máscara antes de salvar no state
+    if (name === "cpf") value = maskCPF(value);
+    if (name === "telefone") value = maskPhone(value);
+
     setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
 
@@ -32,22 +56,43 @@ export default function Cadastro() {
     setSuccessMessage("");
 
     try {
-      // Faz o POST para a rota /usuarios no seu backend Java
-      await api.post("/usuarios", formData);
+      const [ano, mes, dia] = formData.dataNascimento.split("-");
+      const dataFormatada = `${dia}/${mes}/${ano}`;
 
-      // Se o Java retornar 200 OK, exibe a mensagem de sucesso
+      const payload = {
+        nome: formData.nome,
+        // O Java limpa a máscara lá no backend com o replaceAll("\\D", ""), então
+        // podemos mandar com a máscara mesmo que ele se vira perfeitamente!
+        telefone: formData.telefone,
+        email: formData.email,
+        senha: formData.senha,
+        cpf: formData.cpf,
+        dataNascimento: dataFormatada,
+      };
+
+      await api.post("/clientes", payload);
+
       setSuccessMessage("Conta criada com sucesso! Redirecionando...");
 
-      // Aguarda 2 segundinhos para o usuário ler a mensagem e vai pro login
       setTimeout(() => {
         navigate("/login");
       }, 2000);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      // Captura o erro (ex: se o Java avisar que o email já existe)
-      if (error.response?.status === 404 || error.response?.status === 400) {
-        setErrorMessage("Erro ao criar conta. Verifique os dados informados.");
+      if (error.response?.status === 400 || error.response?.status === 404) {
+        const dadosErro = error.response.data;
+        let mensagemAmigavel =
+          "Erro ao criar conta. Verifique os dados informados.";
+
+        if (typeof dadosErro === "string") {
+          mensagemAmigavel = dadosErro;
+        } else if (dadosErro && typeof dadosErro === "object") {
+          mensagemAmigavel =
+            dadosErro.mensagem || dadosErro.message || mensagemAmigavel;
+        }
+
+        setErrorMessage(mensagemAmigavel);
       } else {
         setErrorMessage(
           "Erro de conexão com o servidor. Tente novamente mais tarde.",
@@ -85,7 +130,6 @@ export default function Cadastro() {
         Crie sua conta
       </h2>
 
-      {/* ALERTAS DO BOOTSTRAP */}
       {errorMessage && (
         <div
           className="alert alert-danger text-center p-2 mb-3"
@@ -94,6 +138,7 @@ export default function Cadastro() {
           {errorMessage}
         </div>
       )}
+
       {successMessage && (
         <div
           className="alert alert-success text-center p-2 mb-3"
@@ -104,7 +149,6 @@ export default function Cadastro() {
       )}
 
       <form onSubmit={handleSubmit}>
-        {/* Campo Nome */}
         <div className="mb-3 text-start">
           <label
             className="form-label text-dark mb-1"
@@ -123,7 +167,6 @@ export default function Cadastro() {
           />
         </div>
 
-        {/* Agrupando CPF e Telefone */}
         <div className="row mb-3">
           <div className="col-12 col-md-6 text-start mb-3 mb-md-0">
             <label
@@ -135,8 +178,48 @@ export default function Cadastro() {
             <input
               name="cpf"
               type="text"
+              maxLength={14} // Limita o tamanho máximo visual
+              placeholder="000.000.000-00"
               className="form-control rounded-1 py-2 shadow-none border-secondary"
               value={formData.cpf}
+              onChange={handleChange}
+              disabled={isLoading || successMessage !== ""}
+              required
+            />
+          </div>
+          <div className="col-12 col-md-6 text-start">
+            <label
+              className="form-label text-dark mb-1"
+              style={{ fontSize: "0.8rem", fontWeight: 500 }}
+            >
+              DATA DE NASCIMENTO
+            </label>
+            <input
+              name="dataNascimento"
+              type="date"
+              className="form-control rounded-1 py-2 shadow-none border-secondary"
+              value={formData.dataNascimento}
+              onChange={handleChange}
+              disabled={isLoading || successMessage !== ""}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="row mb-3">
+          <div className="col-12 col-md-6 text-start mb-3 mb-md-0">
+            <label
+              className="form-label text-dark mb-1"
+              style={{ fontSize: "0.8rem", fontWeight: 500 }}
+            >
+              EMAIL
+            </label>
+            <input
+              name="email"
+              type="email"
+              placeholder="seu@email.com"
+              className="form-control rounded-1 py-2 shadow-none border-secondary"
+              value={formData.email}
               onChange={handleChange}
               disabled={isLoading || successMessage !== ""}
               required
@@ -152,6 +235,8 @@ export default function Cadastro() {
             <input
               name="telefone"
               type="text"
+              maxLength={15} // Limita o tamanho máximo visual
+              placeholder="(00) 00000-0000"
               className="form-control rounded-1 py-2 shadow-none border-secondary"
               value={formData.telefone}
               onChange={handleChange}
@@ -161,26 +246,6 @@ export default function Cadastro() {
           </div>
         </div>
 
-        {/* Campo Email */}
-        <div className="mb-3 text-start">
-          <label
-            className="form-label text-dark mb-1"
-            style={{ fontSize: "0.8rem", fontWeight: 500 }}
-          >
-            EMAIL
-          </label>
-          <input
-            name="email"
-            type="email"
-            className="form-control rounded-1 py-2 shadow-none border-secondary"
-            value={formData.email}
-            onChange={handleChange}
-            disabled={isLoading || successMessage !== ""}
-            required
-          />
-        </div>
-
-        {/* Campo Senha */}
         <div className="mb-4 text-start">
           <label
             className="form-label text-dark mb-1"
@@ -210,7 +275,6 @@ export default function Cadastro() {
           </div>
         </div>
 
-        {/* Botão Cadastrar */}
         <div className="d-flex justify-content-center mb-4 px-4">
           <button
             type="submit"
@@ -229,7 +293,6 @@ export default function Cadastro() {
           </button>
         </div>
 
-        {/* Link para voltar ao Login */}
         <div
           className="text-center text-dark mt-2"
           style={{ fontSize: "0.85rem" }}
