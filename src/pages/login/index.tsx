@@ -58,17 +58,11 @@ export function Login() {
         className="d-flex justify-content-center align-items-center gap-3 mb-4 mt-2 text-decoration-none"
       >
         <img
-          src="/logo-abadeus.png"
-          alt="Logo Abadeus Eventos"
+          src="/logos-senac-extended.png"
+          alt="logo do senac"
           className="img-fluid"
-          style={{ maxWidth: "60px" }}
+          style={{ maxWidth: "120px" }}
         />
-        <span
-          className="fw-bold lh-1 text-dark text-start"
-          style={{ fontSize: "1.6rem" }}
-        >
-          Abadeus <br /> Eventos
-        </span>
       </Link>
 
       <h2 className="fs-5 mb-4 text-center text-dark fw-normal">
@@ -149,7 +143,7 @@ export function Login() {
           <button
             type="submit"
             className="btn text-white py-2 rounded-1 border-0 w-100 d-flex align-items-center justify-content-center"
-            style={{ backgroundColor: "#000134" }}
+            style={{ backgroundColor: "#1D376C" }}
             disabled={isLoading}
           >
             {isLoading ? (

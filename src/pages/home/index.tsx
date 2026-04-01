@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom"; // Assumindo que você usa react-router-dom para navegação interna
 
 interface DadosDoEvento {
   titulo: string;
@@ -8,71 +9,90 @@ interface DadosDoEvento {
   local: string;
   realizacao: string;
   linkAcesso: string;
+  imagemCapa: string; // Adicionado: Um evento profissional precisa de apelo visual
 }
 
 export function Home() {
+  // Dados atualizados com placeholder para o contexto do Senac
+  // Atualize com os dados reais assim que os tiver.
   const evento: DadosDoEvento = {
-    titulo: "17ª Paella do\nBem Abadeus",
-
+    titulo: "Workshop de Inovação\ne Tecnologia",
     descricao:
-      "No dia 20 de setembro, a Instituição Abadeus realizará mais uma edição do tradicional Evento de Paella Beneficente, que acontecerá na Rua da Gente.\n\nEste evento tem como principal objetivo arrecadar fundos para apoiar os projetos sociais da instituição, que atua há anos transformando vidas e oferecendo oportunidades a famílias em situação de vulnerabilidade.",
+      "Participe do maior encontro de tecnologia promovido pelo Senac. Um dia inteiro de palestras, networking e imersão nas principais tendências do mercado de desenvolvimento de software.",
     chamada:
-      "Venha participar, traga sua família e amigos, e ajude a fortalecer esta causa tão importante.",
-    data: "20 de setembro",
-    local: "Rua da Gente",
-    realizacao: "Instituição Abadeus",
-    linkAcesso: "#",
+      "Garanta seu ingresso agora e prepare-se para transformar sua carreira.",
+    data: "15 de Novembro de 2026",
+    local: "Auditório Principal - Senac SC",
+    realizacao: "Senac Santa Catarina",
+    linkAcesso: "/comprar", // Deve apontar para a rota real de checkout ou detalhes
+    imagemCapa:
+      "https://placehold.co/800x600/004b87/FFFFFF?text=Capa+do+Evento+Senac", // Azul Senac aproximado
   };
 
   return (
-    <div className="w-100 d-flex justify-content-center">
-      <div className="col-12 col-md-10 col-lg-8 p-3">
-        <div
-          className="rounded p-4 text-center shadow-sm"
-          style={{ backgroundColor: "#e9ecef" }}
-        >
+    <div className="container py-5">
+      <div className="row align-items-center g-5">
+        {/* Coluna Esquerda: Imagem de Destaque */}
+        <div className="col-12 col-lg-6">
+          <img
+            src={evento.imagemCapa}
+            alt={`Capa do evento ${evento.titulo}`}
+            className="img-fluid rounded-4 shadow-lg w-100"
+            style={{ objectFit: "cover", maxHeight: "500px" }} // Única exceção para garantir o corte correto da imagem
+          />
+        </div>
+
+        {/* Coluna Direita: Informações e Conversão (Call to Action) */}
+        <div className="col-12 col-lg-6 d-flex flex-column gap-3">
+          {/* Badge de Destaque */}
+          <span className="badge bg-warning text-dark align-self-start fs-6 px-3 py-2 rounded-pill shadow-sm">
+            Evento em Destaque
+          </span>
+
           <h1
-            className="fw-bold fs-3 mb-4 text-dark"
+            className="fw-bolder display-5 text-dark"
             style={{ whiteSpace: "pre-wrap" }}
           >
             {evento.titulo}
           </h1>
 
-          <hr className="border-dark opacity-100 border-2 mb-4" />
+          <p className="text-secondary fs-5 lh-lg mb-2">{evento.descricao}</p>
 
-          <div className="px-3 px-md-5">
-            <p
-              className="text-center mb-4 text-dark"
-              style={{ fontSize: "0.85rem", whiteSpace: "pre-wrap" }}
-            >
-              {evento.descricao}
-            </p>
+          {/* Card de Informações Técnicas */}
+          <div className="bg-light p-4 rounded-3 border-start border-warning border-5 shadow-sm my-2">
+            <ul className="list-unstyled mb-0 d-flex flex-column gap-3 fs-5 text-dark">
+              <li className="d-flex align-items-center gap-2">
+                <i className="bi bi-calendar-event text-primary fs-4"></i>
+                <span>
+                  <strong className="fw-semibold">Data:</strong> {evento.data}
+                </span>
+              </li>
+              <li className="d-flex align-items-center gap-2">
+                <i className="bi bi-geo-alt text-primary fs-4"></i>
+                <span>
+                  <strong className="fw-semibold">Local:</strong> {evento.local}
+                </span>
+              </li>
+              <li className="d-flex align-items-center gap-2">
+                <i className="bi bi-building text-primary fs-4"></i>
+                <span>
+                  <strong className="fw-semibold">Realização:</strong>{" "}
+                  {evento.realizacao}
+                </span>
+              </li>
+            </ul>
           </div>
 
-          <hr className="border-dark opacity-100 border-2 my-4" />
+          <p className="fw-medium text-dark mb-1">{evento.chamada}</p>
 
-          <div className="px-3 px-md-5">
-            <p className="mb-4 text-dark" style={{ fontSize: "0.85rem" }}>
-              {evento.chamada}
-            </p>
-          </div>
-
-          <div
-            className="fw-bold mb-4 text-dark"
-            style={{ fontSize: "0.9rem" }}
+          {/* Botão de Conversão */}
+          {/* Utilizando bg-warning (laranja/amarelo) para criar alto contraste com o azul do Header */}
+          <Link
+            to={evento.linkAcesso}
+            className="btn btn-warning btn-lg fw-bold text-dark w-100 shadow py-3 text-uppercase mt-2"
           >
-            <div>Data: {evento.data}</div>
-            <div>Local: {evento.local}</div>
-            <div>Realização: {evento.realizacao}</div>
-          </div>
-
-          <a
-            href={evento.linkAcesso}
-            className="btn text-white px-5 py-2 rounded-0 border-0"
-            style={{ backgroundColor: "#000134", textDecoration: "none" }}
-          >
-            Acesse aqui
-          </a>
+            Comprar Ingresso
+          </Link>
         </div>
       </div>
     </div>
