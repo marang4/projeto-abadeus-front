@@ -1,13 +1,13 @@
 import { Route, Routes } from "react-router-dom";
-import { RotaPrivada } from "./assets/components/rotaPrivada"; // <-- ATENÇÃO: Ajuste o caminho se necessário
+import { RotaPrivada } from "./components/rotaPrivada"; // <-- ATENÇÃO: Ajuste o caminho se necessário
 
 import { Home } from "./pages/home";
 import { Login } from "./pages/login";
-import LayoutLogin from "./assets/components/layoutLogin";
-import LayoutAdmin from "./assets/components/layoutAdmin";
+import LayoutLogin from "./components/layoutLogin";
+import LayoutAdmin from "./components/layoutAdmin";
 import Cadastro from "./pages/cadastre-se";
 import EsqueciSenha from "./pages/esqueciSenha";
-import PerfilPage from "./assets/perfilPage";
+import PerfilPage from "./components/perfilPage";
 
 function AppRoutes() {
   return (

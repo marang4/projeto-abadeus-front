@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../contexts/AuthContext"; // <-- Confirme o caminho do seu AuthContext
+import { useAuth } from "../../contexts/AuthContext";
 
 export function Header() {
   const { estaAutenticado, usuario, logout } = useAuth();
@@ -12,39 +12,25 @@ export function Header() {
   };
 
   return (
-    <div
-      className="w-100 shadow-sm sticky-top" // Adicionei sticky-top para fixar o cabeçalho no topo
-      style={{ backgroundColor: "#000134", height: "80px" }}
-    >
-      <div className="col-12 col-md-10 col-lg-8 mx-auto h-100 d-flex justify-content-between align-items-center px-3">
-        {/* LADO ESQUERDO: LOGO DA ABADEUS (Mantido idêntico) */}
-        <Link
-          to="/"
-          className="bg-white text-center rounded-bottom px-2 py-2 h-100 d-flex flex-column justify-content-center shadow-sm text-decoration-none"
-          style={{ width: "90px" }}
-        >
+    <header className="w-100 bg-white shadow-sm sticky-top border-bottom py-2">
+      {/* Utilizamos 'container' nativo para espaçamento ideal, sem restringir demais a largura */}
+      <div className="container d-flex justify-content-between align-items-center h-100">
+        {/* LADO ESQUERDO: LOGO SENAC */}
+        <Link to="/" className="text-decoration-none">
           <img
-            src="/logo-abadeus.png"
-            alt="Logo Abadeus Eventos"
-            className="img-fluid mx-auto mb-1"
-            style={{ maxWidth: "45px" }}
+            src="/logo-senac-removebg-preview.png"
+            alt="Logo Senac"
+            className="img-fluid"
+            style={{ maxHeight: "45px" }} // Única limitação razoável para a logo não quebrar o layout
           />
-          <span
-            className="fw-bold lh-1 text-dark"
-            style={{ fontSize: "0.65rem" }}
-          >
-            Abadeus
-            <br />
-            Eventos
-          </span>
         </Link>
 
         {/* LADO DIREITO: ÍCONES E AUTENTICAÇÃO */}
-        <div className="d-flex align-items-center gap-4 fs-4">
+        <div className="d-flex align-items-center gap-3 gap-md-4 fs-4 text-dark">
           {/* Carrinho de Compras (Sempre visível) */}
           <Link
             to="/carrinho"
-            className="text-white text-decoration-none"
+            className="text-dark text-decoration-none"
             title="Carrinho"
           >
             <i className="bi bi-cart2" role="button"></i>
@@ -53,32 +39,31 @@ export function Header() {
           {/* Lógica de Autenticação */}
           {estaAutenticado ? (
             <>
-              {/* Meus Ingressos (Visível apenas se logado) */}
+              {/* Meus Ingressos: Escondido no mobile (d-none d-md-block) para evitar conflito com a Tab Bar */}
               <Link
                 to="/ingressos"
-                className="text-white text-decoration-none"
+                className="text-dark text-decoration-none d-none d-md-block"
                 title="Meus Ingressos"
               >
                 <i className="bi bi-ticket-detailed" role="button"></i>
               </Link>
 
-              {/* Menu Suspenso (Dropdown) do Bonequinho */}
-              <div className="dropdown">
+              {/* Menu do Usuário: Escondido no mobile pelo mesmo motivo */}
+              <div className="dropdown d-none d-md-block">
                 <button
-                  className="btn btn-link text-white text-decoration-none p-0 d-flex align-items-center gap-2"
+                  className="btn btn-link text-dark text-decoration-none p-0 d-flex align-items-center gap-2"
                   type="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
-                  style={{ boxShadow: "none" }} // Remove a borda feia ao clicar
+                  style={{ boxShadow: "none" }}
                 >
                   <i className="bi bi-person-circle fs-4"></i>
-                  <span className="fs-6 d-none d-md-block fw-light">
-                    {/* Exibe apenas o primeiro nome do usuário */}
+                  <span className="fs-6 fw-light">
                     {usuario?.nome?.split(" ")[0] || "Perfil"}
                   </span>
                 </button>
 
-                <ul className="dropdown-menu dropdown-menu-end shadow border-0 mt-3">
+                <ul className="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-3">
                   <li>
                     <Link className="dropdown-item py-2" to="/perfil">
                       <i className="bi bi-person me-2 text-muted"></i> Meu
@@ -106,10 +91,10 @@ export function Header() {
               </div>
             </>
           ) : (
-            /* Botão Entrar (Visível apenas se NÃO estiver logado) */
+            /* Botão Entrar: Usa as cores do Bootstrap para destacar a ação */
             <Link
               to="/login"
-              className="btn btn-outline-light btn-sm d-flex align-items-center gap-2 rounded-2 px-3 py-1"
+              className="btn btn-primary btn-sm d-flex align-items-center gap-2 rounded-2 px-3 py-2"
               title="Entrar"
             >
               <i className="bi bi-person-circle fs-5"></i>
@@ -118,6 +103,6 @@ export function Header() {
           )}
         </div>
       </div>
-    </div>
+    </header>
   );
 }
