@@ -12,14 +12,12 @@ import PerfilPage from "./components/perfilPage";
 function AppRoutes() {
   return (
     <Routes>
-      {/* Rotas Públicas */}
       <Route element={<LayoutLogin />}>
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/esqueci-senha" element={<EsqueciSenha />} />
       </Route>
 
-      {/* Rotas Privadas */}
       <Route
         element={
           <RotaPrivada>
