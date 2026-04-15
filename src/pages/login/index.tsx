@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext"; // <-- ATENÇÃO: Verifique se este caminho aponta certo para o seu arquivo AuthContext.tsx
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface LoginRequest {
   documento: string;
@@ -9,7 +9,8 @@ interface LoginRequest {
 
 export function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth(); // Puxa a função de login real
+  const { login } = useAuth();
+  const [searchParams] = useSearchParams();
 
   const [formData, setFormData] = useState<LoginRequest>({
     documento: "",
@@ -17,8 +18,22 @@ export function Login() {
   });
 
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
+
+  // Lê a URL caso o usuário venha do redirecionamento do e-mail
+  useEffect(() => {
+    const sucesso = searchParams.get("sucesso");
+    const erro = searchParams.get("erro");
+
+    if (sucesso === "email-confirmado") {
+      setSuccessMessage("E-mail confirmado com sucesso! Você já pode entrar.");
+    }
+    if (erro === "token-invalido") {
+      setErrorMessage("O link de confirmação é inválido ou já expirou.");
+    }
+  }, [searchParams]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -28,21 +43,32 @@ export function Login() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage("");
+    setSuccessMessage("");
     setIsLoading(true);
 
     try {
-      // Chama a API do Java enviando os dados
       await login({
-        email: formData.documento, // O back pede email, mas seu form envia documento
+        email: formData.documento,
         senha: formData.senha,
       });
 
-      // Se deu certo, vai para a Home
       navigate("/");
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      // Se o Java retornar erro (ex: 401), exibe na tela
-      setErrorMessage("E-mail ou senha incorretos.");
+    } catch (error: any) {
+      const status = error.response?.status;
+      const mensagemDoBackend = error.response?.data?.message || error.response?.data;
+
+      // Captura o erro específico da conta inativa (enviado pelo AuthService do Java)
+      if (status === 403 || (typeof mensagemDoBackend === 'string' && mensagemDoBackend.toLowerCase().includes("inativa"))) {
+        setErrorMessage(mensagemDoBackend || "Sua conta precisa de ativação. Verifique seu e-mail.");
+      } 
+      // Exibe qualquer outra RegraDeNegocioException
+      else if (mensagemDoBackend && typeof mensagemDoBackend === 'string') {
+        setErrorMessage(mensagemDoBackend);
+      } 
+      // Fallback padrão
+      else {
+        setErrorMessage("E-mail ou senha incorretos.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -50,8 +76,8 @@ export function Login() {
 
   return (
     <div
-      className="rounded p-4 shadow-sm w-100"
-      style={{ backgroundColor: "#e9ecef" }}
+      className="rounded p-4 shadow-sm w-100 mx-auto"
+      style={{ backgroundColor: "#e9ecef", maxWidth: "450px" }}
     >
       <Link
         to="/"
@@ -71,7 +97,15 @@ export function Login() {
         para continuar
       </h2>
 
-      {/* Exibição do erro usando Bootstrap */}
+      {successMessage && (
+        <div
+          className="alert alert-success text-center p-2 mb-3"
+          style={{ fontSize: "0.85rem" }}
+        >
+          {successMessage}
+        </div>
+      )}
+
       {errorMessage && (
         <div
           className="alert alert-danger text-center p-2 mb-3"

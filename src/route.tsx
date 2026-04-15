@@ -1,5 +1,5 @@
 import { Route, Routes } from "react-router-dom";
-import { RotaPrivada } from "./components/rotaPrivada"; // <-- ATENÇÃO: Ajuste o caminho se necessário
+import { RotaPrivada } from "./components/rotaPrivada"; // Verifique o caminho
 
 import { Home } from "./pages/home";
 import { Login } from "./pages/login";
@@ -12,13 +12,14 @@ import PerfilPage from "./components/perfilPage";
 function AppRoutes() {
   return (
     <Routes>
+      {/* Rotas Públicas */}
       <Route element={<LayoutLogin />}>
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/esqueci-senha" element={<EsqueciSenha />} />
       </Route>
 
-      {/* Catraca fechada: Envolvemos o LayoutAdmin com a RotaPrivada */}
+      {/* Rotas Privadas */}
       <Route
         element={
           <RotaPrivada>
@@ -29,6 +30,9 @@ function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/perfil" element={<PerfilPage />} />
       </Route>
+
+      {/* Fallback de Segurança */}
+      <Route path="*" element={<Login />} />
     </Routes>
   );
 }

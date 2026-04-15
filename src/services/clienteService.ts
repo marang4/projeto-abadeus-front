@@ -49,7 +49,6 @@ export interface ClienteRequestDTO {
   senha?: string;
   cpf: string;
   dataNascimento: string;
-  tipoCliente?: "NORMAL" | "ALUNO";
   endereco?: EnderecoRequestDTO;
 }
 
@@ -57,7 +56,6 @@ export interface ClienteUpdateDTO {
   nome: string;
   telefone: string;
   senha?: string;
-  tipoCliente?: "NORMAL" | "ALUNO";
   urlDocumento?: string;
   endereco?: EnderecoRequestDTO;
   responsaveis?: ResponsavelRequestDTO[];
