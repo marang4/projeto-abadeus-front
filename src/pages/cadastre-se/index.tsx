@@ -5,7 +5,6 @@ import { ClienteService } from "../../services/clienteService";
 function CadastroClientePage() {
   const navigate = useNavigate();
 
-  // O campo tipoCliente foi removido do state do formulário
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -54,39 +53,29 @@ function CadastroClientePage() {
     setSuccessMessage("");
 
     try {
-      const [ano, mes, dia] = formData.dataNascimento.split("-");
-      const dataFormatada = `${dia}/${mes}/${ano}`;
-
-      // Payload monta o tipoCliente de forma padronizada (hardcoded) para satisfazer o DTO do backend
+      // 1. Envia os dados limpos (sem máscara) e a data pura (ISO-8601)
       const payload = {
         nome: formData.nome,
-        telefone: formData.telefone,
+        telefone: formData.telefone.replace(/\D/g, ""),
         email: formData.email,
         senha: formData.senha,
-        cpf: formData.cpf,
-        dataNascimento: dataFormatada,
-        tipoCliente: "NORMAL", 
+        cpf: formData.cpf.replace(/\D/g, ""),
+        dataNascimento: formData.dataNascimento,
       };
 
       await ClienteService.criarCliente(payload);
 
-      setSuccessMessage("Conta criada com sucesso! Redirecionando...");
+      setSuccessMessage("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
 
       setTimeout(() => {
         navigate("/login");
-      }, 2000);
+      }, 3000);
     } catch (error: any) {
-      if (error.response?.status === 400 || error.response?.status === 404 || error.response?.status === 409) {
-        const dadosErro = error.response.data;
-        let mensagemAmigavel = "Erro ao criar conta. Verifique os dados informados.";
+      // 2. CORREÇÃO CRÍTICA: Lendo 'mensagem' em vez de 'message'
+      const mensagemDoBackend = error.response?.data?.mensagem || error.response?.data;
 
-        if (typeof dadosErro === "string") {
-          mensagemAmigavel = dadosErro;
-        } else if (dadosErro && typeof dadosErro === "object") {
-          mensagemAmigavel = dadosErro.mensagem || dadosErro.message || mensagemAmigavel;
-        }
-
-        setErrorMessage(mensagemAmigavel);
+      if (mensagemDoBackend && typeof mensagemDoBackend === 'string') {
+        setErrorMessage(mensagemDoBackend); // Agora o erro real do Spring vai aparecer na tela!
       } else {
         setErrorMessage("Erro de conexão com o servidor. Tente novamente mais tarde.");
       }
@@ -96,7 +85,7 @@ function CadastroClientePage() {
   };
 
   return (
-    <div className="rounded p-4 shadow-sm w-100" style={{ backgroundColor: "#e9ecef" }}>
+    <div className="rounded p-4 shadow-sm w-100 mx-auto" style={{ backgroundColor: "#e9ecef", maxWidth: "600px" }}>
       <Link to="/" className="d-flex justify-content-center align-items-center gap-3 mb-4 mt-2 text-decoration-none">
         <img src="/logos-senac-extended.png" alt="logo senac" className="img-fluid" style={{ maxWidth: "120px" }} />
       </Link>
@@ -201,7 +190,6 @@ function CadastroClientePage() {
         </div>
 
         <div className="row mb-3">
-          {/* Ajuste: col-12 para ocupar a linha inteira de forma harmônica */}
           <div className="col-12 text-start">
             <label className="form-label text-dark mb-1" style={{ fontSize: "0.8rem", fontWeight: 500 }}>
               SENHA
