@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-// Quando for conectar com o banco, basta descomentar a linha abaixo:
-// import { solicitarRecuperacaoSenha } from '../../services/authService';
+import authService from "../../services/authService";
 
 export default function EsqueciSenha() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  // Mantive a sua lógica de usar uma string para a mensagem de sucesso/erro
   const [mensagem, setMensagem] = useState("");
+
+  const azulSistema = "#1453bd";
+  const laranjaSistema = "#f19000";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,110 +16,96 @@ export default function EsqueciSenha() {
     setMensagem("");
 
     try {
-      // Aqui entrará a sua chamada real para a API:
-      // await solicitarRecuperacaoSenha(email);
-
-      // Simulação temporária para você ver o alerta verde funcionando
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      setMensagem(
-        "Se este e-mail estiver cadastrado, você receberá um link em instantes.",
-      );
-    } catch (error) {
-      console.error(error);
-      setMensagem("Erro ao solicitar recuperação. Tente novamente.");
+      await authService.solicitarRecuperacaoSenha(email);
+      setMensagem("Se este e-mail estiver cadastrado, você receberá um link em instantes.");
+    } catch (error: any) {
+      const mensagemDoBackend = error.response?.data?.mensagem || error.response?.data?.message || error.response?.data;
+      
+      if (mensagemDoBackend && typeof mensagemDoBackend === 'string') {
+        setMensagem("Erro: " + mensagemDoBackend);
+      } else {
+        setMensagem("Erro ao solicitar recuperação. Tente novamente.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const isError = mensagem.includes("Erro");
+
   return (
     <div
-      className="rounded p-4 shadow-sm w-100"
-      style={{ backgroundColor: "#e9ecef" }}
+      className="p-4 p-md-5 rounded-4 shadow-lg w-100 mx-auto"
+      style={{ backgroundColor: "#ffffff", maxWidth: "450px", border: "1px solid #f1f5f9" }}
     >
-      {/* Logo clicável redirecionando para a Home */}
-      <Link
-        to="/"
-        className="d-flex justify-content-center align-items-center gap-3 mb-4 mt-2 text-decoration-none"
-      >
+      <Link to="/" className="d-flex justify-content-center mb-4 text-decoration-none">
         <img
           src="/logos-senac-extended.png"
           alt="logo senac"
           className="img-fluid"
-          style={{ maxWidth: "120px" }}
+          style={{ maxWidth: "160px" }}
         />
       </Link>
 
-      <h2 className="fs-6S mb-3 text-center text-dark fw-normal">
-        Recuperar senha
-      </h2>
+      <div className="text-center mb-4">
+        <h2 className="fs-4 fw-bold mb-2" style={{ color: azulSistema }}>
+          Recuperar senha
+        </h2>
+        <p className="text-muted small px-2">
+          Digite seu e-mail cadastrado e enviaremos as instruções para criar uma nova senha.
+        </p>
+      </div>
 
-      <p
-        className="text-center text-dark mb-4 px-2"
-        style={{ fontSize: "0.85rem" }}
-      >
-        Digite o e-mail cadastrado na sua conta e enviaremos um link para
-        redefinição.
-      </p>
+      {mensagem && (
+        <div
+          className="alert border-0 p-2 mb-4 text-center"
+          style={{ 
+            fontSize: "0.85rem", 
+            backgroundColor: isError ? "#fef2f2" : "#ecfdf5", 
+            color: isError ? "#991b1b" : "#065f46" 
+          }}
+        >
+          {mensagem}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
-        {/* Campo E-mail */}
-        <div className="mb-3 text-start">
-          <label
-            className="form-label text-dark mb-1"
-            style={{ fontSize: "0.8rem", fontWeight: 500 }}
-          >
-            EMAIL
+        <div className="mb-4 text-start">
+          <label className="form-label mb-1 fw-semibold" style={{ fontSize: "0.85rem", color: "#475569" }}>
+            E-MAIL
           </label>
           <input
             type="email"
-            className="form-control rounded-1 py-2 shadow-none border-secondary"
+            className="form-control rounded-3 py-2 px-3 shadow-none"
+            style={{ border: "1px solid #cbd5e1" }}
+            placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={loading}
+            disabled={loading || (!isError && mensagem !== "")}
             required
           />
         </div>
 
-        {/* Alerta de Sucesso ou Erro (Lógica do seu código antigo!) */}
-        {mensagem && (
-          <div
-            className={`alert ${mensagem.includes("Erro") ? "alert-danger" : "alert-success"} py-2 mb-4 text-center`}
-            style={{ fontSize: "0.85rem" }}
-          >
-            {mensagem}
-          </div>
-        )}
+        <button
+          type="submit"
+          className="btn text-white py-2 fw-bold rounded-3 w-100 border-0 mb-4"
+          style={{ backgroundColor: azulSistema, boxShadow: `0 4px 12px rgba(20, 83, 189, 0.2)` }}
+          disabled={loading || (!isError && mensagem !== "")}
+        >
+          {loading ? (
+            <div className="d-flex align-items-center justify-content-center">
+              <span className="spinner-border spinner-border-sm me-2"></span>
+              Enviando...
+            </div>
+          ) : (
+            "Enviar link de recuperação"
+          )}
+        </button>
 
-        {/* Botão Enviar Link */}
-        <div className="d-flex justify-content-center mb-4 px-4 mt-2">
-          <button
-            type="submit"
-            className="btn text-white py-2 rounded-1 border-0 w-100 d-flex align-items-center justify-content-center"
-            style={{ backgroundColor: "#1D376C" }}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2"></span>
-                Enviando...
-              </>
-            ) : (
-              "Enviar link"
-            )}
-          </button>
-        </div>
-
-        {/* Link para voltar ao login */}
-        <div className="text-center mt-2">
-          <Link
-            to="/login"
-            className="text-decoration-none text-secondary hover-dark"
-            style={{ fontSize: "0.85rem" }}
-          >
-            <i className="bi bi-arrow-left me-1"></i>
-            Lembrei minha senha
+        <div className="text-center mt-2 pt-3 border-top">
+          <Link to="/login" className="text-decoration-none fw-bold" style={{ color: laranjaSistema, fontSize: "0.9rem" }}>
+            <i className="bi bi-arrow-left me-2"></i>
+            Voltar para o login
           </Link>
         </div>
       </form>

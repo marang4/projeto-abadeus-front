@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "./api"; 
 import { cookieService } from "./cookieService";
 
 export interface LoginRequest {
@@ -11,14 +11,15 @@ export interface AuthUser {
   id: number;
   nome: string;
   email: string;
-  role: string;
   telefone?: string;
+  role?: string;
 }
 
 const COOKIE_USER_DATA = "user_data";
 const COOKIE_AUTH_STATE = "auth_state";
 
 class AuthService {
+  
   async login(credentials: LoginRequest): Promise<AuthUser> {
     const response = await api.post<AuthUser>("/auth/login", credentials);
     this.setUserData(response.data, credentials.lembrarMe);
@@ -43,10 +44,18 @@ class AuthService {
     try {
       await api.post("/auth/logout");
     } catch (error) {
-      console.error("Erro ao deslogar no servidor:", error);
+      console.error("Erro ao deslogar:", error);
     } finally {
       this.clearUserData();
     }
+  }
+
+  async solicitarRecuperacaoSenha(email: string): Promise<void> {
+    await api.post("/auth/recuperarsenha", { email });
+  }
+
+  async resetarSenha(token: string, senhaNova: string): Promise<void> {
+    await api.post("/auth/resetarsenha", { token, senha: senhaNova });
   }
 
   private setUserData(user: AuthUser, rememberMe?: boolean): void {
@@ -65,5 +74,6 @@ class AuthService {
   }
 }
 
-export const authService = new AuthService();
+const authService = new AuthService();
+
 export default authService;
