@@ -5,16 +5,15 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-// Atenção: Verifica se o caminho para o teu authService está correto aqui!
-import {
-  authService,
+
+import authService, {
   type AuthUser,
   type LoginRequest,
-} from "../services/AuthService";
+} from "../services/authService";
 
 interface AuthContextType {
   usuario: AuthUser | null;
-  user: AuthUser | null; // Alias para compatibilidade
+  user: AuthUser | null;
   estaAutenticado: boolean;
   loading: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
@@ -78,3 +77,5 @@ export const useAuth = () => {
     throw new Error("useAuth deve ser usado dentro de AuthProvider");
   return context;
 };
+
+export default AuthProvider;

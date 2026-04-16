@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Outlet, Link } from "react-router-dom";
 import { Header } from "../header";
 import Tabs from "../tabs";
-import { useAuth } from "../../contexts/AuthContext"; // Importado para usar a função de logout no menu
+import { useAuth } from "../../contexts/authContext";
 
 function LayoutAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -10,32 +10,34 @@ function LayoutAdmin() {
 
   const handleSair = async () => {
     await logout();
-    // O redirecionamento para o login geralmente é feito no Header ou em um useEffect observando a autenticação,
-    // mas caso queira forçar, pode usar o useNavigate aqui também.
   };
 
   return (
-    <div className="d-flex flex-column min-vh-100 position-relative">
+    // overflow-hidden no X garante que nunca haverá rolagem horizontal indesejada
+    <div className="d-flex flex-column min-vh-100 position-relative overflow-x-hidden">
       <Header />
 
-      <main className="container mt-4 mb-5 pb-5 mb-md-4 pb-md-0 flex-grow-1">
+      {/* A MÁGICA ESTÁ AQUI:
+        - Removido o container-fluid
+        - Adicionado w-100 (100% de largura)
+        - px-0 (zero padding lateral)
+        - Mantido o espaçamento inferior (mb-5 pb-5) só para o mobile não esconder conteúdo atrás das Tabs
+      */}
+      <main className="flex-grow-1 w-100 px-0 mt-4 mb-5 pb-5 mb-md-0 pb-md-0">
         <Outlet />
       </main>
 
       <Tabs onMoreClick={() => setIsSidebarOpen(true)} />
 
-      {/* COMPONENTE DO MENU MOBILE (Offcanvas customizado) */}
-      {/* Só é renderizado se isSidebarOpen for true e for tela mobile (d-md-none) */}
+      {/* MENU MOBILE (Offcanvas) */}
       {isSidebarOpen && (
         <>
-          {/* Fundo escuro (Backdrop) que fecha o menu ao clicar fora */}
           <div
             className="offcanvas-backdrop fade show d-md-none"
             onClick={() => setIsSidebarOpen(false)}
             style={{ zIndex: 1040 }}
           ></div>
 
-          {/* Container do Menu Inferior */}
           <div
             className="offcanvas offcanvas-bottom show d-md-none rounded-top-4"
             style={{ visibility: "visible", height: "auto", zIndex: 1045 }}
@@ -53,7 +55,6 @@ function LayoutAdmin() {
 
             <div className="offcanvas-body px-0 py-2">
               <ul className="list-group list-group-flush fs-5">
-                {/* Apenas Perfil e Sair ficam escondidos no botão "Mais" */}
                 <li className="list-group-item border-0">
                   <Link
                     to="/perfil"

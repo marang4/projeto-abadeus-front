@@ -1,6 +1,6 @@
 import React, { type JSX } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext"; // <-- Lembre-se de ajustar este caminho para onde está o seu AuthProvider
+import { useAuth } from "../../contexts/authContext"; // <-- Lembre-se de ajustar este caminho para onde está o seu AuthProvider
 
 interface RotaPrivadaProps {
   children: JSX.Element;
