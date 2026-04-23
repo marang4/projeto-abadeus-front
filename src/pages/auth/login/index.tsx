@@ -1,86 +1,87 @@
-  import React, { useState, useEffect } from "react";
-  import { Link, useNavigate, useSearchParams } from "react-router-dom";
-  import { useAuth } from "../../contexts/authContext";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../../../contexts/AuthContext"; // Ajuste o path se necessário
 
-  interface LoginRequest {
-    documento: string;
-    senha: string;
-  }
+interface LoginRequest {
+  documento: string;
+  senha: string;
+}
 
-  export function Login() {
-    const navigate = useNavigate();
-    const { login } = useAuth();
-    const [searchParams] = useSearchParams();
+const Login: React.FC = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [searchParams] = useSearchParams();
 
-    const [formData, setFormData] = useState<LoginRequest>({   
-      documento: "",
-      senha: "",
-    });
+  const [formData, setFormData] = useState<LoginRequest>({   
+    documento: "",
+    senha: "",
+  });
 
-    const [errorMessage, setErrorMessage] = useState<string>("");
-    const [successMessage, setSuccessMessage] = useState<string>("");
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
-    // Cores do Sistema
-    const azulSistema = "#1453bd";
-    const laranjaSistema = "#f19000";
+  // Cores do Sistema
+  const azulSistema = "#1453bd";
+  const laranjaSistema = "#f19000";
 
-    useEffect(() => {
-      const sucesso = searchParams.get("sucesso");
-      const erro = searchParams.get("erro");
+  useEffect(() => {
+    const sucesso = searchParams.get("sucesso");
+    const erro = searchParams.get("erro");
 
-      if (sucesso === "email-confirmado") {
-        setSuccessMessage("E-mail confirmado com sucesso! Você já pode entrar.");
+    if (sucesso === "email-confirmado") {
+      setSuccessMessage("E-mail confirmado com sucesso! Você já pode entrar.");
+    }
+    if (erro === "token-invalido") {
+      setErrorMessage("O link de confirmação é inválido ou já expirou.");
+    }
+  }, [searchParams]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFormData((prevState) => ({ ...prevState, [name]: value }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsLoading(true);
+
+    try {
+      await login({
+        email: formData.documento,
+        senha: formData.senha,
+      });
+
+      navigate("/");
+    } catch (error: any) {
+      const status = error.response?.status;
+      const mensagemDoBackend = error.response?.data?.message || error.response?.data;
+
+      if (status === 403 || (typeof mensagemDoBackend === 'string' && mensagemDoBackend.toLowerCase().includes("inativa"))) {
+        setErrorMessage(mensagemDoBackend || "Sua conta precisa de ativação. Verifique seu e-mail.");
+      } else if (mensagemDoBackend && typeof mensagemDoBackend === 'string') {
+        setErrorMessage(mensagemDoBackend);
+      } else {
+        setErrorMessage("E-mail ou senha incorretos.");
       }
-      if (erro === "token-invalido") {
-        setErrorMessage("O link de confirmação é inválido ou já expirou.");
-      }
-    }, [searchParams]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = event.target;
-      setFormData((prevState) => ({ ...prevState, [name]: value }));
-    };
-
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      setErrorMessage("");
-      setSuccessMessage("");
-      setIsLoading(true);
-
-      try {
-        await login({
-          email: formData.documento,
-          senha: formData.senha,
-        });
-
-        navigate("/");
-      } catch (error: any) {
-        const status = error.response?.status;
-        const mensagemDoBackend = error.response?.data?.message || error.response?.data;
-
-        if (status === 403 || (typeof mensagemDoBackend === 'string' && mensagemDoBackend.toLowerCase().includes("inativa"))) {
-          setErrorMessage(mensagemDoBackend || "Sua conta precisa de ativação. Verifique seu e-mail.");
-        } else if (mensagemDoBackend && typeof mensagemDoBackend === 'string') {
-          setErrorMessage(mensagemDoBackend);
-        } else {
-          setErrorMessage("E-mail ou senha incorretos.");
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    return (
+  return (
+    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light w-100">
       <div
-  className="p-4 p-md-5 rounded-4 shadow-lg w-100 mx-auto"
-  style={{ 
-    backgroundColor: "#ffffff", 
-    maxWidth: "450px", 
-    border: `1px solid #f1f5f9` 
-  }}
->
+        className="p-4 p-md-5 rounded-4 shadow-lg w-100 mx-auto"
+        style={{ 
+          backgroundColor: "#ffffff", 
+          maxWidth: "450px", 
+          border: `1px solid #f1f5f9` 
+        }}
+      >
         <Link
           to="/"
           className="d-flex justify-content-center align-items-center mb-4 text-decoration-none"
@@ -198,5 +199,8 @@
           </div>
         </form>
       </div>
-    );
-  }
+    </div>
+  );
+};
+
+export default Login;

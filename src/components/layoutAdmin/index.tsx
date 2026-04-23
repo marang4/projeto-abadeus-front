@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Outlet, Link } from "react-router-dom";
 import { Header } from "../header";
 import Tabs from "../tabs";
-import { useAuth } from "../../contexts/authContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 function LayoutAdmin() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

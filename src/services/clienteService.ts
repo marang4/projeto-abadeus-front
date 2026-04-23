@@ -93,8 +93,23 @@ export const ClienteService = {
     return response.data;
   },
 
-  atualizarCliente: async (id: number, data: ClienteUpdateDTO): Promise<ClienteResponseDTO> => {
-    const response = await api.put<ClienteResponseDTO>(`/clientes/${id}`, data);
+  // Ajustado para receber o arquivo e enviar como multipart/form-data
+  atualizarCliente: async (id: number, data: ClienteUpdateDTO, arquivo?: File | null): Promise<ClienteResponseDTO> => {
+    const formData = new FormData();
+    
+    // O backend espera o DTO como um Blob tipado como JSON
+    formData.append("clienteUpdate", new Blob([JSON.stringify(data)], { type: "application/json" }));
+    
+    // Se o usuário selecionou um arquivo, anexa no form
+    if (arquivo) {
+      formData.append("arquivo", arquivo);
+    }
+
+    const response = await api.put<ClienteResponseDTO>(`/clientes/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   },
 

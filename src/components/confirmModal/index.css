@@ -1,0 +1,34 @@
+.confirm-modal .modal-content {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.confirm-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+/* Cores de fundo e ícone padronizadas com o Bootstrap */
+.confirm-icon-wrapper.success { background-color: #d1e7dd; color: #198754; }
+.confirm-icon-wrapper.danger { background-color: #f8d7da; color: #dc3545; }
+.confirm-icon-wrapper.warning { background-color: #fff3cd; color: #ffc107; }
+.confirm-icon-wrapper.primary { background-color: #cfe2ff; color: #0d6efd; }
+.confirm-icon-wrapper.info { background-color: #cff4fc; color: #0dcaf0; }
+
+.confirm-modal-title {
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 0;
+}
+
+.confirm-modal-message {
+  color: #6c757d;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
