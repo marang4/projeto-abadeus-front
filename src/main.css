@@ -1,0 +1,147 @@
+/* 1. VARIÁVEIS E TOKENS DE DESIGN */
+:root {
+  --senac-azul: #1453bd;
+  --senac-laranja: #f19000;
+  --bg-light: #f4f7fa;
+  --text-main: #1a1d21;
+  --text-muted: #64748b;
+  --border-radius: 12px;
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
+  
+  /* Safe areas para iPhones com notch */
+  --safe-area-top: env(safe-area-inset-top);
+  --safe-area-bottom: env(safe-area-inset-bottom);
+}
+
+/* 2. RESET E OTIMIZAÇÕES MOBILE */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  /* Remove o brilho cinza ao clicar em links/botões no Android/iOS */
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Garante que o conteúdo não fique escondido sob o notch do iPhone */
+  padding-top: var(--safe-area-top);
+  padding-bottom: var(--safe-area-bottom);
+  overflow-x: hidden;
+}
+
+/* 3. TIPOGRAFIA RESPONSIVA (Fluid Typography) */
+h1, h2, h3 {
+  color: var(--senac-azul);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Ajuste dinâmico de fontes para telas menores */
+@media (max-width: 576px) {
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h4 { font-size: 1.1rem; }
+}
+
+/* 4. COMPONENTES REESTRUTURADOS */
+.card {
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-soft);
+  background-color: #ffffff;
+}
+
+/* OTIMIZAÇÃO DE INPUTS PARA MOBILE */
+.form-control {
+  border-radius: 8px !important;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid #e2e8f0 !important;
+  transition: all 0.2s ease !important;
+  /* CRÍTICO: Font-size mínimo de 16px no mobile impede que o iOS dê zoom automático ao focar */
+  font-size: 16px !important; 
+}
+
+.form-control:focus {
+  border-color: var(--senac-azul) !important;
+  box-shadow: 0 0 0 4px rgba(20, 83, 189, 0.1) !important;
+  background-color: #ffffff !important;
+}
+
+/* BOTÕES ERGONÔMICOS (Mínimo 44px de altura para touch) */
+.btn {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 0.75rem 1.5rem !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px; 
+  transition: transform 0.1s active;
+}
+
+.btn:active {
+  transform: scale(0.98); /* Feedback tátil de clique */
+}
+
+.btn-primary {
+  background-color: var(--senac-azul) !important;
+  border-color: var(--senac-azul) !important;
+}
+
+.btn-secondary {
+  background-color: var(--senac-laranja) !important;
+  border-color: var(--senac-laranja) !important;
+  color: #fff !important;
+}
+
+/* 5. MEDIA QUERIES GRANULARES (Tablet e Mobile) */
+
+/* TABLETS (iPad, Android Tablets) */
+@media (max-width: 992px) {
+  .container {
+    max-width: 95%;
+  }
+}
+
+/* CELULARES (Android, iPhone) */
+@media (max-width: 576px) {
+  .p-md-5 {
+    padding: 1.25rem !important;
+  }
+  
+  .card-body {
+    padding: 1rem !important;
+  }
+
+  /* Faz botões ocuparem 100% da largura em formulários mobile se necessário */
+  .btn-mobile-full {
+    width: 100%;
+  }
+
+  /* Ajuste para o Footer não "comer" espaço útil */
+  footer {
+    padding: 2rem 1rem !important;
+  }
+}
+
+/* 6. CORREÇÕES PARA COMPONENTES BOOTSTRAP */
+.accordion-button:not(.collapsed) {
+  background-color: rgba(20, 83, 189, 0.05) !important;
+  color: var(--senac-azul) !important;
+  box-shadow: none !important;
+}
+
+/* Ajuste de scrollbar global para ficar mais discreto */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
