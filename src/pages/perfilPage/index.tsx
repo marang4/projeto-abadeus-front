@@ -1,34 +1,30 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import api from "../../services/api";
-import Footer from "../../components/footer"; 
+import Footer from "../../components/footer";
 import ConfirmModal from "../../components/confirmModal";
-import { ClienteService } from "../../services/clienteService"; // Ajuste o path se necessário
+import Modal from "../../components/Modal"; // Importando seu modal customizado
+import { ClienteService } from "../../services/clienteService";
 
 const PerfilPage = () => {
   const [usuario, setUsuario] = useState({ id: null, nome: "", email: "", cpf: "", telefone: "", dataNascimento: "", urlDocumento: "" });
   const [endereco, setEndereco] = useState({ id: null, cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "" });
   const [senhas, setSenhas] = useState({ senhaAtual: "", novaSenha: "", confirmaSenha: "" });
-  
+
   const [filiacao, setFiliacao] = useState({
     pai: { id: null, nome: "", cpf: "", telefone: "" },
     mae: { id: null, nome: "", cpf: "", telefone: "" }
   });
   const [quemBusca, setQuemBusca] = useState<any[]>([]);
-
-  // Estado para armazenar o arquivo selecionado no botão
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  const [showDocModal, setShowDocModal] = useState(false);
+  const [showSenhaModal, setShowSenhaModal] = useState(false);
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
 
   const [toast, setToast] = useState({ show: false, message: "", type: "danger" });
-  
-  const [modalConfig, setModalConfig] = useState({
-    show: false,
-    message: "",
-    title: "Sucesso!",
-    variant: "success" as const
-  });
+  const [modalConfig, setModalConfig] = useState({ show: false, message: "", title: "Sucesso!", variant: "success" as const });
 
-  const [openSenha, setOpenSenha] = useState(false);
   const [openEndereco, setOpenEndereco] = useState(false);
   const [openResponsaveis, setOpenResponsaveis] = useState(false);
 
@@ -45,7 +41,7 @@ const PerfilPage = () => {
   };
 
   const maskCpf = (value: string) => value.replace(/\D/g, "").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})/, "$1-$2").replace(/(-\d{2})\d+?$/, "$1");
-  
+
   const maskPhone = (value: string) => {
     let v = value.replace(/\D/g, "");
     if (v.length <= 10) return v.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3").replace(/-$/, "");
@@ -57,37 +53,38 @@ const PerfilPage = () => {
     return v.length > 5 ? v.replace(/^(\d{5})(\d)/, "$1-$2").slice(0, 9) : v;
   };
 
-  useEffect(() => {
-    const carregarDados = async () => {
-      try {
-        const resAuth = await api.get("/auth/me");
-        const userAuth = resAuth.data;
-        if (!userAuth || !userAuth.id) return;
+  const carregarDados = async () => {
+    try {
+      const resAuth = await api.get("/auth/me");
+      const userAuth = resAuth.data;
+      if (!userAuth || !userAuth.id) return;
 
-        const d = await ClienteService.buscarPorId(userAuth.id);
+      const d = await ClienteService.buscarPorId(userAuth.id);
 
-        setUsuario({
-          id: d.id as any,
-          nome: d.nome || userAuth.nome || "",
-          email: d.email || userAuth.email || "",
-          cpf: maskCpf(d.cpf || ""),
-          telefone: maskPhone(d.telefone || ""),
-          dataNascimento: d.dataNascimento || "",
-          urlDocumento: d.urlDocumento || ""
-        });
-        
-        if (d.responsaveis && d.responsaveis.length >= 2) {
-          setFiliacao({ pai: { ...d.responsaveis[0], cpf: maskCpf(d.responsaveis[0].cpf), telefone: maskPhone(d.responsaveis[0].telefone) }, mae: { ...d.responsaveis[1], cpf: maskCpf(d.responsaveis[1].cpf), telefone: maskPhone(d.responsaveis[1].telefone) } });
-        } else if (d.responsaveis && d.responsaveis.length === 1) {
-          setFiliacao({ pai: { ...d.responsaveis[0], cpf: maskCpf(d.responsaveis[0].cpf), telefone: maskPhone(d.responsaveis[0].telefone) }, mae: { id: null, nome: "", cpf: "", telefone: "" } });
-        }
+      setUsuario({
+        id: d.id as any,
+        nome: d.nome || userAuth.nome || "",
+        email: d.email || userAuth.email || "",
+        cpf: maskCpf(d.cpf || ""),
+        telefone: maskPhone(d.telefone || ""),
+        dataNascimento: d.dataNascimento || "",
+        urlDocumento: d.urlDocumento || ""
+      });
 
-        if (d.responsaveisBuscar) setQuemBusca(d.responsaveisBuscar.map((r: any) => ({ ...r, cpf: maskCpf(r.cpf), telefone: maskPhone(r.telefone) })));
-        if (d.endereco) setEndereco({ id: d.endereco.id as any, cep: maskCep(d.endereco.cep || ""), logradouro: d.endereco.logradouro || "", numero: d.endereco.numero || "", complemento: d.endereco.complemento || "", bairro: d.endereco.bairro || "", cidade: d.endereco.cidade || "", uf: d.endereco.uf || "" });
-      } catch (e) {
-        console.error("Erro ao carregar perfil:", e);
+      if (d.responsaveis && d.responsaveis.length >= 2) {
+        setFiliacao({ pai: { ...d.responsaveis[0], cpf: maskCpf(d.responsaveis[0].cpf), telefone: maskPhone(d.responsaveis[0].telefone) }, mae: { ...d.responsaveis[1], cpf: maskCpf(d.responsaveis[1].cpf), telefone: maskPhone(d.responsaveis[1].telefone) } });
+      } else if (d.responsaveis && d.responsaveis.length === 1) {
+        setFiliacao({ pai: { ...d.responsaveis[0], cpf: maskCpf(d.responsaveis[0].cpf), telefone: maskPhone(d.responsaveis[0].telefone) }, mae: { id: null, nome: "", cpf: "", telefone: "" } });
       }
-    };
+
+      if (d.responsaveisBuscar) setQuemBusca(d.responsaveisBuscar.map((r: any) => ({ ...r, cpf: maskCpf(r.cpf), telefone: maskPhone(r.telefone) })));
+      if (d.endereco) setEndereco({ id: d.endereco.id as any, cep: maskCep(d.endereco.cep || ""), logradouro: d.endereco.logradouro || "", numero: d.endereco.numero || "", complemento: d.endereco.complemento || "", bairro: d.endereco.bairro || "", cidade: d.endereco.cidade || "", uf: d.endereco.uf || "" });
+    } catch (e) {
+      console.error("Erro ao carregar perfil:", e);
+    }
+  };
+
+  useEffect(() => {
     carregarDados();
   }, []);
 
@@ -107,8 +104,41 @@ const PerfilPage = () => {
     }
   };
 
+  const salvarDocumentoModal = async () => {
+    if (!usuario.id || !selectedFile) return;
+    setIsUploadingDoc(true);
+    try {
+      await ClienteService.atualizarDocumento(usuario.id, selectedFile);
+      setSelectedFile(null);
+      await carregarDados(); 
+      showSuccessModal("Documento anexado com sucesso!");
+      setShowDocModal(false);
+    } catch (error: any) {
+      if (axios.isAxiosError(error)) showToast(error.response?.data?.message || "Erro ao salvar documento.", "danger");
+    } finally {
+      setIsUploadingDoc(false);
+    }
+  };
+
+  const deletarDocumento = async () => {
+    if (!usuario.id) return;
+    if (!window.confirm("Tem certeza que deseja excluir o documento atual?")) return;
+    
+    setIsUploadingDoc(true);
+    try {
+      await api.delete(`/clientes/${usuario.id}/documento`);
+      await carregarDados();
+      showSuccessModal("Documento excluído com sucesso.");
+      setShowDocModal(false);
+    } catch (error: any) {
+      showToast("Erro ao excluir documento.", "danger");
+    } finally {
+      setIsUploadingDoc(false);
+    }
+  };
+
   const addResponsavelBuscar = () => quemBusca.length < 3 && setQuemBusca([...quemBusca, { nome: "", cpf: "", telefone: "" }]);
-  
+
   const updateResponsavelBuscar = (index: number, field: string, value: string) => {
     const novaLista = [...quemBusca];
     if (field === 'cpf') value = maskCpf(value);
@@ -144,17 +174,14 @@ const PerfilPage = () => {
     if (!usuario.id) return;
     try {
       const payload = {
-        nome: usuario.nome, 
+        nome: usuario.nome,
         telefone: usuario.telefone,
         responsaveis: isMenor() ? [filiacao.pai, filiacao.mae].filter(r => r.nome || r.cpf || r.telefone) : [],
         responsaveisBuscar: isMenor() ? quemBusca.filter(r => r.nome || r.cpf || r.telefone) : []
       };
-      
-      // Enviando pelo Service que agora suporta arquivo
-      await ClienteService.atualizarCliente(usuario.id, payload, selectedFile);
-      
+
+      await ClienteService.atualizarCliente(usuario.id, payload);
       showSuccessModal("Seus dados foram salvos com sucesso.");
-      setSelectedFile(null); // Limpa o arquivo após o envio
     } catch (error: any) {
       if (axios.isAxiosError(error)) showToast(error.response?.data?.message || "Erro ao salvar dados.", "danger");
     }
@@ -166,7 +193,7 @@ const PerfilPage = () => {
       await api.post("/auth/alterarsenha", { senhaAtual: senhas.senhaAtual, novaSenha: senhas.novaSenha });
       showSuccessModal("Sua senha foi alterada com sucesso.");
       setSenhas({ senhaAtual: "", novaSenha: "", confirmaSenha: "" });
-      setOpenSenha(false);
+      setShowSenhaModal(false);
     } catch (error: any) {
       if (axios.isAxiosError(error)) showToast(error.response?.data?.message || "Erro ao alterar senha.", "danger");
     }
@@ -193,7 +220,7 @@ const PerfilPage = () => {
 
   return (
     <div className="d-flex flex-column min-vh-100 bg-light">
-      
+
       <style>
         {`
           .perfil-card-hover {
@@ -225,6 +252,77 @@ const PerfilPage = () => {
         </div>
       )}
 
+      {/* MODAL: DOCUMENTO RG */}
+      <Modal
+        show={showDocModal}
+        onHide={() => { setShowDocModal(false); setSelectedFile(null); }}
+        title="Gerenciar Documento (RG)"
+        size="md"
+        footer={
+          <>
+            <button type="button" className="btn btn-secondary fw-medium" onClick={() => { setShowDocModal(false); setSelectedFile(null); }} disabled={isUploadingDoc}>Cancelar</button>
+            <button type="button" className="btn fw-medium text-white" style={{ backgroundColor: senacAzul }} onClick={salvarDocumentoModal} disabled={!selectedFile || isUploadingDoc}>
+              {isUploadingDoc ? <><span className="spinner-border spinner-border-sm me-2"></span>Enviando...</> : <><i className="bi bi-cloud-arrow-up me-2"></i>Salvar Novo Documento</>}
+            </button>
+          </>
+        }
+      >
+        <div className="text-center p-2">
+          {usuario.urlDocumento ? (
+            <div className="bg-light p-4 rounded-3 mb-4 border border-secondary border-opacity-25">
+              <i className="bi bi-file-earmark-person fs-1" style={{ color: senacAzul }}></i>
+              <p className="fw-bold mt-2 mb-3 text-dark">Você já possui um documento salvo no sistema.</p>
+              <div className="d-flex justify-content-center gap-2">
+                <a href={usuario.urlDocumento} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-primary fw-medium">
+                  <i className="bi bi-eye me-1"></i> Visualizar
+                </a>
+                <button onClick={deletarDocumento} className="btn btn-sm btn-outline-danger fw-medium" disabled={isUploadingDoc}>
+                  <i className="bi bi-trash3 me-1"></i> Excluir RG
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted small mb-4">Nenhum documento anexado. Para finalizar seu cadastro, envie uma imagem ou PDF legível do seu RG.</p>
+          )}
+
+          <div className="text-start">
+            <label className="form-label fw-bold small text-muted">Selecionar arquivo (Substitui o atual)</label>
+            <input type="file" className="form-control bg-light" accept="image/*,.pdf" onChange={handleFileChange} />
+          </div>
+        </div>
+      </Modal>
+
+      {/* MODAL: ALTERAR SENHA */}
+      <Modal
+        show={showSenhaModal}
+        onHide={() => setShowSenhaModal(false)}
+        title="Alterar Senha"
+        size="md"
+        footer={
+          <>
+            <button type="button" className="btn btn-secondary fw-medium" onClick={() => setShowSenhaModal(false)}>Cancelar</button>
+            <button type="button" className="btn fw-medium text-white" style={{ backgroundColor: senacAzul }} onClick={alterarSenha}>
+              <i className="bi bi-check2-circle me-1"></i> Confirmar Nova Senha
+            </button>
+          </>
+        }
+      >
+        <div className="p-2">
+          <div className="mb-3">
+            <label className="form-label text-muted small fw-bold">Senha Atual</label>
+            <input type="password" className="form-control bg-light" value={senhas.senhaAtual} onChange={(e) => setSenhas({ ...senhas, senhaAtual: e.target.value })} />
+          </div>
+          <div className="mb-3">
+            <label className="form-label text-muted small fw-bold">Nova Senha</label>
+            <input type="password" className="form-control bg-light" value={senhas.novaSenha} onChange={(e) => setSenhas({ ...senhas, novaSenha: e.target.value })} />
+          </div>
+          <div>
+            <label className="form-label text-muted small fw-bold">Confirme a Nova Senha</label>
+            <input type="password" className="form-control bg-light" value={senhas.confirmaSenha} onChange={(e) => setSenhas({ ...senhas, confirmaSenha: e.target.value })} />
+          </div>
+        </div>
+      </Modal>
+
       <ConfirmModal
         show={modalConfig.show}
         onHide={() => setModalConfig({ ...modalConfig, show: false })}
@@ -237,14 +335,14 @@ const PerfilPage = () => {
       <div className="container py-5 flex-grow-1">
         <div className="row justify-content-center">
           <div className="col-lg-9">
-            
+
             {/* 1. CARD PRINCIPAL: MEUS DADOS */}
             <div className="card shadow-sm border-0 mb-4 perfil-card-hover" style={{ borderTop: `5px solid ${senacAzul}` }}>
               <div className="card-body p-4 p-md-5">
                 <h4 className="fw-bold mb-4 d-flex align-items-center" style={textStyleAzul}>
                   <i className="bi bi-person-badge fs-3 me-2"></i> Meus Dados
                 </h4>
-                
+
                 <div className="row g-3 mb-4">
                   <div className="col-md-6">
                     <label className="form-label text-muted small fw-bold">Nome Completo</label>
@@ -269,82 +367,46 @@ const PerfilPage = () => {
                     <i className="bi bi-check2-circle me-1"></i> Salvar Dados
                   </button>
 
-                  {/* BOTÃO DE ANEXAR ARQUIVO (Aparece apenas para Menores) */}
                   {isMenor() && (
-                    <>
-                      <input 
-                        type="file" 
-                        id="rg-upload-btn" 
-                        hidden 
-                        accept="image/*,.pdf" 
-                        onChange={handleFileChange} 
-                      />
-                      <button 
-                        type="button" 
-                        className={`btn fw-medium ${selectedFile || usuario.urlDocumento ? 'btn-outline-success' : 'btn-outline-primary'}`} 
-                        onClick={() => document.getElementById('rg-upload-btn')?.click()}
-                      >
-                        <i className={`bi ${selectedFile || usuario.urlDocumento ? 'bi-file-earmark-check' : 'bi-file-earmark-arrow-up'} me-1`}></i> 
-                        {selectedFile ? selectedFile.name : (usuario.urlDocumento ? 'Atualizar Documento (RG)' : 'Anexar Documento (RG)*')}
-                      </button>
-                    </>
+                    <button
+                      type="button"
+                      className={`btn fw-medium ${usuario.urlDocumento ? 'btn-outline-success' : 'btn-outline-primary'}`}
+                      onClick={() => setShowDocModal(true)}
+                    >
+                      <i className={`bi ${usuario.urlDocumento ? 'bi-file-earmark-check' : 'bi-file-earmark-plus'} me-1`}></i>
+                      Gerenciar RG
+                    </button>
                   )}
 
-                  <button 
-                    type="button" 
-                    className={`btn fw-medium ${openSenha ? 'btn-secondary' : 'btn-outline-secondary'}`} 
-                    onClick={() => setOpenSenha(!openSenha)}
+                  <button
+                    type="button"
+                    className="btn fw-medium btn-outline-secondary"
+                    onClick={() => setShowSenhaModal(true)}
                   >
-                    <i className={`bi ${openSenha ? 'bi-x-lg' : 'bi-shield-lock'} me-1`}></i> 
-                    {openSenha ? 'Cancelar Alteração' : 'Alterar Senha'}
+                    <i className="bi bi-shield-lock me-1"></i> Alterar Senha
                   </button>
                 </div>
-
-                {openSenha && (
-                  <div className="mt-4 p-4 rounded-4 border" style={{ backgroundColor: "#f8fafc" }}>
-                    <h6 className="fw-bold mb-3 text-dark">Atualizar Senha de Acesso</h6>
-                    <div className="row g-3">
-                      <div className="col-md-4">
-                        <label className="form-label text-muted small">Senha Atual</label>
-                        <input type="password" className="form-control" value={senhas.senhaAtual} onChange={(e) => setSenhas({ ...senhas, senhaAtual: e.target.value })} />
-                      </div>
-                      <div className="col-md-4">
-                        <label className="form-label text-muted small">Nova Senha</label>
-                        <input type="password" className="form-control" value={senhas.novaSenha} onChange={(e) => setSenhas({ ...senhas, novaSenha: e.target.value })} />
-                      </div>
-                      <div className="col-md-4">
-                        <label className="form-label text-muted small">Confirme a Senha</label>
-                        <input type="password" className="form-control" value={senhas.confirmaSenha} onChange={(e) => setSenhas({ ...senhas, confirmaSenha: e.target.value })} />
-                      </div>
-                      <div className="col-12 text-end mt-3">
-                        <button type="button" className="btn px-4" style={btnStyleAzul} onClick={alterarSenha}>
-                          Confirmar Nova Senha
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
             {/* 2. CARD ACORDEON: ENDEREÇOS */}
             <div className="card shadow-sm border-0 mb-4 perfil-card-hover">
-              <div 
-                className={`card-header bg-white border-0 p-4 d-flex justify-content-between align-items-center user-select-none accordion-header-custom ${openEndereco ? 'border-bottom' : ''}`} 
-                style={{ cursor: "pointer", borderBottomLeftRadius: openEndereco ? "0" : "12px", borderBottomRightRadius: openEndereco ? "0" : "12px" }} 
+              <div
+                className={`card-header bg-white border-0 p-4 d-flex justify-content-between align-items-center user-select-none accordion-header-custom ${openEndereco ? 'border-bottom' : ''}`}
+                style={{ cursor: "pointer", borderBottomLeftRadius: openEndereco ? "0" : "12px", borderBottomRightRadius: openEndereco ? "0" : "12px" }}
                 onClick={() => setOpenEndereco(!openEndereco)}
               >
                 <h5 className="mb-0 fw-bold text-dark d-flex align-items-center">
                   <i className="bi bi-geo-alt fs-4 me-3" style={textStyleAzul}></i> Endereços
                 </h5>
-                <div 
-                  className="rounded-circle d-flex align-items-center justify-content-center bg-light" 
+                <div
+                  className="rounded-circle d-flex align-items-center justify-content-center bg-light"
                   style={{ width: "36px", height: "36px", transform: openEndereco ? "rotate(180deg)" : "rotate(0deg)", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
                 >
                   <i className="bi bi-chevron-down text-secondary"></i>
                 </div>
               </div>
-              
+
               {openEndereco && (
                 <div className="card-body p-4 pt-4 bg-white" style={{ borderBottomLeftRadius: "16px", borderBottomRightRadius: "16px" }}>
                   <div className="row g-3 mb-4">
@@ -389,37 +451,37 @@ const PerfilPage = () => {
             {/* 3. CARD ACORDEON: RESPONSÁVEIS */}
             {isMenor() && (
               <div className="card shadow-sm border-0 mb-4 perfil-card-hover" style={{ borderLeft: `5px solid ${senacLaranja}` }}>
-                <div 
-                  className={`card-header bg-white border-0 p-4 d-flex justify-content-between align-items-center user-select-none accordion-header-custom ${openResponsaveis ? 'border-bottom' : ''}`} 
-                  style={{ cursor: "pointer", borderBottomLeftRadius: openResponsaveis ? "0" : "12px", borderBottomRightRadius: openResponsaveis ? "0" : "12px" }} 
+                <div
+                  className={`card-header bg-white border-0 p-4 d-flex justify-content-between align-items-center user-select-none accordion-header-custom ${openResponsaveis ? 'border-bottom' : ''}`}
+                  style={{ cursor: "pointer", borderBottomLeftRadius: openResponsaveis ? "0" : "12px", borderBottomRightRadius: openResponsaveis ? "0" : "12px" }}
                   onClick={() => setOpenResponsaveis(!openResponsaveis)}
                 >
                   <h5 className="mb-0 fw-bold text-dark d-flex align-items-center">
                     <i className="bi bi-people fs-4 me-3" style={{ color: senacLaranja }}></i> Responsáveis
                   </h5>
-                  <div 
-                    className="rounded-circle d-flex align-items-center justify-content-center bg-light" 
+                  <div
+                    className="rounded-circle d-flex align-items-center justify-content-center bg-light"
                     style={{ width: "36px", height: "36px", transform: openResponsaveis ? "rotate(180deg)" : "rotate(0deg)", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
                   >
                     <i className="bi bi-chevron-down text-secondary"></i>
                   </div>
                 </div>
-                
+
                 {openResponsaveis && (
                   <div className="card-body p-4 pt-4 bg-white" style={{ borderBottomLeftRadius: "16px", borderBottomRightRadius: "16px" }}>
                     <h6 className="fw-bold mb-3" style={textStyleAzul}>Filiação (Responsáveis Legais)</h6>
                     <div className="row g-4 mb-5">
                       <div className="col-md-6 border-end-md">
                         <label className="form-label text-muted small fw-bold">Dados do Pai</label>
-                        <input type="text" className="form-control bg-light mb-2" placeholder="Nome Completo" value={filiacao.pai.nome || ""} onChange={e => setFiliacao({...filiacao, pai: {...filiacao.pai, nome: e.target.value}})} />
-                        <input type="text" className="form-control bg-light mb-2" placeholder="CPF" value={filiacao.pai.cpf || ""} onChange={e => setFiliacao({...filiacao, pai: {...filiacao.pai, cpf: maskCpf(e.target.value)}})} />
-                        <input type="text" className="form-control bg-light" placeholder="Telefone" value={filiacao.pai.telefone || ""} onChange={e => setFiliacao({...filiacao, pai: {...filiacao.pai, telefone: maskPhone(e.target.value)}})} />
+                        <input type="text" className="form-control bg-light mb-2" placeholder="Nome Completo" value={filiacao.pai.nome || ""} onChange={e => setFiliacao({ ...filiacao, pai: { ...filiacao.pai, nome: e.target.value } })} />
+                        <input type="text" className="form-control bg-light mb-2" placeholder="CPF" value={filiacao.pai.cpf || ""} onChange={e => setFiliacao({ ...filiacao, pai: { ...filiacao.pai, cpf: maskCpf(e.target.value) } })} />
+                        <input type="text" className="form-control bg-light" placeholder="Telefone" value={filiacao.pai.telefone || ""} onChange={e => setFiliacao({ ...filiacao, pai: { ...filiacao.pai, telefone: maskPhone(e.target.value) } })} />
                       </div>
                       <div className="col-md-6">
                         <label className="form-label text-muted small fw-bold">Dados da Mãe</label>
-                        <input type="text" className="form-control bg-light mb-2" placeholder="Nome Completo" value={filiacao.mae.nome || ""} onChange={e => setFiliacao({...filiacao, mae: {...filiacao.mae, nome: e.target.value}})} />
-                        <input type="text" className="form-control bg-light mb-2" placeholder="CPF" value={filiacao.mae.cpf || ""} onChange={e => setFiliacao({...filiacao, mae: {...filiacao.mae, cpf: maskCpf(e.target.value)}})} />
-                        <input type="text" className="form-control bg-light" placeholder="Telefone" value={filiacao.mae.telefone || ""} onChange={e => setFiliacao({...filiacao, mae: {...filiacao.mae, telefone: maskPhone(e.target.value)}})} />
+                        <input type="text" className="form-control bg-light mb-2" placeholder="Nome Completo" value={filiacao.mae.nome || ""} onChange={e => setFiliacao({ ...filiacao, mae: { ...filiacao.mae, nome: e.target.value } })} />
+                        <input type="text" className="form-control bg-light mb-2" placeholder="CPF" value={filiacao.mae.cpf || ""} onChange={e => setFiliacao({ ...filiacao, mae: { ...filiacao.mae, cpf: maskCpf(e.target.value) } })} />
+                        <input type="text" className="form-control bg-light" placeholder="Telefone" value={filiacao.mae.telefone || ""} onChange={e => setFiliacao({ ...filiacao, mae: { ...filiacao.mae, telefone: maskPhone(e.target.value) } })} />
                       </div>
                     </div>
 
@@ -459,7 +521,7 @@ const PerfilPage = () => {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

@@ -2,7 +2,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import AppRoutes from "./route";
 import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext"; // <-- ATENÇÃO: Confirme se o caminho para o seu arquivo AuthContext.tsx está correto aqui
+import { AuthProvider } from "./contexts/AuthContext";
+import "./main.css"; 
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
