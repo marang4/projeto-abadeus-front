@@ -1,7 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/authContext";
-
+import { useAuth } from "../../contexts/AuthContext";
 import logoSenac from "../../pages/home/images/logo.png";
 
 export function Header() {
@@ -25,26 +24,67 @@ export function Header() {
   };
 
   return (
-    <header 
+    <header
       className="w-100 shadow-sm sticky-top py-2"
-      style={{ 
-        background: `linear-gradient(to right, ${laranjaSistema}, ${azulSistema})`, 
-        borderBottom: "1px solid rgba(255,255,255,0.1)" 
+      style={{
+        background: `linear-gradient(to right, ${laranjaSistema}, ${azulSistema})`,
+        borderBottom: "1px solid rgba(255,255,255,0.1)"
       }}
     >
-      <div className="container-fluid px-4 px-md-5 d-flex justify-content-between align-items-center h-100">
-        
-       <Link to="/" className="text-decoration-none ms-5 ps-5"> 
-          <img
-            src={logoSenac}
-            alt="Logo Senac"
-            className="img-fluid"
-            style={{ maxHeight: "80px", transition: "0.2s" }} 
-          />
-        </Link>
+      <div className="container-fluid px-4 px-md-5 d-flex align-items-center justify-content-between h-100">
 
-        <div className="d-flex align-items-center gap-3 gap-md-4 fs-4 text-white">
-          
+        {/* BLOCO ESQUERDO: LOGO */}
+        <div className="d-flex align-items-center" style={{ flex: 1 }}>
+          <Link to="/" className="text-decoration-none">
+            <img
+              src={logoSenac}
+              alt="Logo Senac"
+              className="img-fluid"
+              style={{ maxHeight: "80px", transition: "0.2s" }}
+            />
+          </Link>
+        </div>
+
+        {/* bloco central: menus */}
+        <div className="d-flex justify-content-center align-items-center gap-4" style={{ flex: 1 }}>
+          {usuario?.role === "ROLE_ADMIN" && (
+            <Link
+              to="/eventos"
+              className="text-decoration-none fw-bold"
+              style={{
+                color: "#ffffff",
+                transition: "color 0.2s",
+                fontSize: "1.2rem",
+                letterSpacing: "0.5px"
+              }}
+              onMouseOver={handleMouseOver}
+              onMouseOut={handleMouseOut}
+            >
+              Eventos
+            </Link>
+          )}
+
+          {usuario?.role === "ROLE_ADMIN" && (
+            <Link
+              to="/categoria-evento"
+              className="text-decoration-none fw-bold"
+              style={{
+                color: "#ffffff",
+                transition: "color 0.2s",
+                fontSize: "1.2rem",
+                letterSpacing: "0.5px"
+              }}
+              onMouseOver={handleMouseOver}
+              onMouseOut={handleMouseOut}
+            >
+              Categoria
+            </Link>
+          )}
+        </div>
+
+        {/* BLOCO DIREITO: AÇÕES */}
+        <div className="d-flex align-items-center justify-content-end gap-3 gap-md-4 fs-4 text-white" style={{ flex: 1 }}>
+
           <Link
             to="/carrinho"
             className="text-decoration-none d-flex align-items-center"
@@ -115,15 +155,15 @@ export function Header() {
               to="/login"
               className="btn btn-sm d-flex align-items-center gap-2 rounded-3 px-3 py-2 fw-bold"
               title="Entrar"
-              style={{ 
-                backgroundColor: "transparent", 
-                color: "#ffffff", 
+              style={{
+                backgroundColor: "transparent",
+                color: "#ffffff",
                 border: "2px solid #ffffff",
-                transition: "all 0.2s" 
+                transition: "all 0.2s"
               }}
               onMouseOver={(e) => {
                 e.currentTarget.style.backgroundColor = "#ffffff";
-                e.currentTarget.style.color = azulSistema; 
+                e.currentTarget.style.color = azulSistema;
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.backgroundColor = "transparent";

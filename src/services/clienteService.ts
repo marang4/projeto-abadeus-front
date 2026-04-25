@@ -56,7 +56,6 @@ export interface ClienteUpdateDTO {
   nome: string;
   telefone: string;
   senha?: string;
-  urlDocumento?: string;
   endereco?: EnderecoRequestDTO;
   responsaveis?: ResponsavelRequestDTO[];
   responsaveisBuscar?: ResponsavelBuscarRequestDTO[];
@@ -96,6 +95,17 @@ export const ClienteService = {
   atualizarCliente: async (id: number, data: ClienteUpdateDTO): Promise<ClienteResponseDTO> => {
     const response = await api.put<ClienteResponseDTO>(`/clientes/${id}`, data);
     return response.data;
+  },
+
+  atualizarDocumento: async (id: number, arquivo: File): Promise<void> => {
+    const formData = new FormData();
+    formData.append("file", arquivo);
+
+    await api.patch(`/clientes/${id}/documento`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
   },
 
   deletarCliente: async (id: number): Promise<void> => {
